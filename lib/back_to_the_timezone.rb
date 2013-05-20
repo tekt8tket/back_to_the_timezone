@@ -8,10 +8,21 @@ module BackToTheTimezone
 		def shift_timezone(field_name, options = {})
 
 			# Override the getter like 'registered_at'
-			define_method(field_name) { Time.zone.at(read_attribute(field_name).to_i - read_attribute(field_name).in_time_zone(options[:legacy_timezone] || Time.zone).utc_offset) }
+			define_method(field_name) {
+				if read_attribute(field_name)
+					Time.zone.at(read_attribute(field_name).to_i - read_attribute(field_name).in_time_zone(options[:legacy_timezone] || Time.zone).utc_offset)
+				end
+			}
 
 			# Override the setter like 'registered_at='
-			define_method(field_name.to_s + '=') { |value| write_attribute(field_name, Time.zone.at(value.to_i + value.in_time_zone(options[:legacy_timezone] || Time.zone).utc_offset) ) }
+			define_method(field_name.to_s + '=') { |value|
+				if value
+					legacy_time = Time.zone.at(value.to_i + value.in_time_zone(options[:legacy_timezone] || Time.zone).utc_offset)
+				else
+					legacy_time = nil
+				end
+				write_attribute(field_name, legacy_time)
+			}
 
 		end
 	end
