@@ -16,12 +16,16 @@ module BackToTheTimezone
 
 			# Override the setter like 'registered_at='
 			define_method(field_name.to_s + '=') { |value|
-				if value
-					legacy_time = Time.zone.at(value.to_i + value.in_time_zone(options[:legacy_timezone] || Time.zone).utc_offset)
-				else
-					legacy_time = nil
+				unless value.blank?
+					value = Time.parse(value) if value.class == String
+
+					if value
+						legacy_time = Time.zone.at(value.to_i + value.in_time_zone(options[:legacy_timezone] || Time.zone).utc_offset)
+					else
+						legacy_time = nil
+					end
+					write_attribute(field_name, legacy_time)
 				end
-				write_attribute(field_name, legacy_time)
 			}
 
 		end
